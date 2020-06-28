@@ -733,6 +733,9 @@ int target_read_u8(uint8_t *pval, uint32_t addr)
         debug_out("[%lx] read_u8: addr:%x\n", insn_counter, addr);
 #ifdef USE_CACHE
         // TODO: Assignment #3
+        uint32_t data = cache_read(addr);
+        uint8_t ofs = (addr & 0x00000003);
+        *pval = one_byte_selector(data, ofs);
 #else
         uint8_t *p = ram + addr;
         *pval = p[0];
@@ -768,6 +771,9 @@ int target_read_u16(uint16_t *pval, uint32_t addr)
         debug_out("[%lx] read_u16: addr:%x\n", insn_counter, addr);
 #ifdef USE_CACHE
         // TODO: Assignment #3
+        uint32_t data = cache_read(addr);
+        uint8_t ofs = (addr & 0x00000003);
+        *pval = one_byte_selector(data, ofs) | (one_byte_selector(data, ofs+1) << 8);
 #else
         uint8_t *p = ram + addr;
         *pval = p[0] | (p[1] << 8);
@@ -812,6 +818,8 @@ int target_read_u32(uint32_t *pval, uint32_t addr)
             debug_out("[%lx] read_u32: addr:%x\n", insn_counter, addr);
 #ifdef USE_CACHE
             // TODO: Assignment #3
+            uint32_t data = cache_read(addr);
+            *pval = data;
 #else
             uint8_t *p = ram + addr;
             *pval = p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
@@ -846,6 +854,10 @@ int target_write_u8(uint32_t addr, uint8_t val)
             debug_out("[%lx] write_u8: addr:%x val:%x\n", insn_counter, addr, val);
 #ifdef USE_CACHE
             // TODO: Assignment #3
+            uint32_t old_data = cache_read(addr);
+            uint32_t new_data = ((old_data >> 8) && 0xffffff) | val;
+
+            cache_write(addr, new_data);
 #else
             uint8_t *p = ram + addr;
             p[0] = val & 0xff;
@@ -880,6 +892,10 @@ int target_write_u16(uint32_t addr, uint16_t val)
         debug_out("[%lx] write_u16: addr:%x val:%x\n", insn_counter, addr, val);
 #ifdef USE_CACHE
         // TODO: Assignment #3
+        uint32_t old_data = cache_read(addr);
+        uint32_t new_data = ((old_data >> 16) && 0xffff) | val;
+
+        cache_write(addr, new_data);
 #else
         uint8_t *p = ram + addr;
         p[0] = val & 0xff;
@@ -921,6 +937,7 @@ int target_write_u32(uint32_t addr, uint32_t val)
             debug_out("[%lx] write_u32: addr:%x val:%x\n", insn_counter, addr, val);
 #ifdef USE_CACHE
             // TODO: Assignment #3
+            cache_write(addr, val);
 #else
             uint8_t *p = ram + addr;
             p[0] = val & 0xff;
