@@ -84,5 +84,5 @@ void cache_write(uint32_t addr, uint32_t value)
   p[0] = value & 0xff;
   p[1] = (value >> 8) & 0xff;
   p[2] = (value >> 16) & 0xff;
-  p[3] = (value >> 24) & 0xff;
+  p[3] = (value >> 24) & 0xff
 }

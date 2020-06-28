@@ -49,6 +49,7 @@ char statnames[64][16] = {
     "LR.W",  "SC.W",   "URET",   "SRET",    "MRET",   "WFI",    "SFENCE.VMA",
     ""};
 
+
 void init_stats(void)
 {
     for (int i = 0; i < STATS_NUM; i++)
@@ -735,7 +736,26 @@ int target_read_u8(uint8_t *pval, uint32_t addr)
         // TODO: Assignment #3
         uint32_t data = cache_read(addr);
         uint8_t ofs = (addr & 0x00000003);
-        *pval = one_byte_selector(data, ofs);
+        uint8_t targetval = 0;
+        switch (ofs)
+        {
+        case 0x3:
+            targetval = (data >> 24) & 0xff;
+            break;
+        case 0x2:
+            targetval = (data >> 16) & 0xff;
+            break;
+        case 0x1:
+            targetval = (data >> 8) & 0xff;
+            break;
+        case 0x0:
+            targetval = data & 0xff;
+            break;
+        default:
+            break;
+        }
+
+        *pval = targetval;
 #else
         uint8_t *p = ram + addr;
         *pval = p[0];
@@ -773,7 +793,48 @@ int target_read_u16(uint16_t *pval, uint32_t addr)
         // TODO: Assignment #3
         uint32_t data = cache_read(addr);
         uint8_t ofs = (addr & 0x00000003);
-        *pval = one_byte_selector(data, ofs) | (one_byte_selector(data, ofs+1) << 8);
+
+        uint8_t targetval1 = 0;
+        uint8_t targetval2 = 0;
+
+        switch (ofs)
+        {
+        case 0x3:
+            targetval1 = (data >> 24) & 0xff;
+            break;
+        case 0x2:
+            targetval1 = (data >> 16) & 0xff;
+            break;
+        case 0x1:
+            targetval1 = (data >> 8) & 0xff;
+            break;
+        case 0x0:
+            targetval1 = data & 0xff;
+            break;
+        default:
+            break;
+        }
+
+        switch (ofs + 1)
+        {
+        case 0x3:
+            targetval2 = (data >> 24) & 0xff;
+            break;
+        case 0x2:
+            targetval2 = (data >> 16) & 0xff;
+            break;
+        case 0x1:
+            targetval2 = (data >> 8) & 0xff;
+            break;
+        case 0x0:
+            targetval2 = data & 0xff;
+            break;
+        default:
+            break;
+        }
+
+
+        *pval = targetval1 | (targetval2 << 8);
 #else
         uint8_t *p = ram + addr;
         *pval = p[0] | (p[1] << 8);
@@ -855,7 +916,7 @@ int target_write_u8(uint32_t addr, uint8_t val)
 #ifdef USE_CACHE
             // TODO: Assignment #3
             uint32_t old_data = cache_read(addr);
-            uint32_t new_data = ((old_data >> 8) && 0xffffff) | val;
+            uint32_t new_data = (old_data & 0xffffff00) | val;
 
             cache_write(addr, new_data);
 #else
@@ -893,7 +954,7 @@ int target_write_u16(uint32_t addr, uint16_t val)
 #ifdef USE_CACHE
         // TODO: Assignment #3
         uint32_t old_data = cache_read(addr);
-        uint32_t new_data = ((old_data >> 16) && 0xffff) | val;
+        uint32_t new_data = (old_data & 0xffff0000) | val;
 
         cache_write(addr, new_data);
 #else
@@ -2202,3 +2263,6 @@ int main(int argc, char **argv)
 #endif
     return 0;
 }
+
+
+// end!
