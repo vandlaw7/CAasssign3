@@ -51,12 +51,12 @@ uint32_t cache_read(uint32_t addr)
   uint32_t idxM = (addr & 0x0000003C) >> 2;
 
   struct cache_block cb_arr[ASSO_NUM];
-  for (uint8_t i = 0; i < ASSO_NUM; i++)
+  for (uint32_t i = 0; i < ASSO_NUM; i++)
   {
     cb_arr[i] = cache[ASSO_NUM * idxM + i];
   }
 
-  for (uint8_t i = 0; i < ASSO_NUM; i++)
+  for (uint32_t i = 0; i < ASSO_NUM; i++)
   {
     struct cache_block now_cb;
     now_cb = cb_arr[i];
@@ -67,9 +67,9 @@ uint32_t cache_read(uint32_t addr)
       value = now_cb.data;
       cache[ASSO_NUM * idxM + i].counter = 3;
 
-      for (uint8_t j = 0; j < ASSO_NUM; j++)
+      for (uint32_t j = 0; j < ASSO_NUM; j++)
       {
-        if (j != i && now_cb.counter)
+        if (j != i && now_cb.counter != 0)
         {
           cache[ASSO_NUM * idxM + j].counter -= 1;
         }
@@ -86,8 +86,8 @@ uint32_t cache_read(uint32_t addr)
   value = p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
 
   //가장 작은 counter를 가진 cache_block을 찾아내서 data를 덮어쓴다.
-  uint8_t rewrite_index = 0;
-  for (uint8_t i = 0; i < ASSO_NUM; i++)
+  uint32_t rewrite_index = 0;
+  for (uint32_t i = 0; i < ASSO_NUM; i++)
   {
     if (!cb_arr[i].valid)
     {
@@ -119,7 +119,7 @@ void cache_write(uint32_t addr, uint32_t value)
   uint32_t idxM = (addr & 0x0000003C) >> 2;
 
   struct cache_block cb_arr[ASSO_NUM];
-  for (uint8_t i = 0; i < ASSO_NUM; i++)
+  for (uint32_t i = 0; i < ASSO_NUM; i++)
   {
     cb_arr[i] = cache[ASSO_NUM * idxM + i];
     if ((cb_arr[i].tag) == tagM && cb_arr[i].data == value)
@@ -130,8 +130,8 @@ void cache_write(uint32_t addr, uint32_t value)
   }
 
   //가장 작은 counter를 가진 cache_block을 찾아내서 data를 덮어쓴다.
-  uint8_t rewrite_index = 0;
-  for (uint8_t i = 0; i < ASSO_NUM; i++)
+  uint32_t rewrite_index = 0;
+  for (uint32_t i = 0; i < ASSO_NUM; i++)
   {
     if (!cb_arr[i].valid)
     {
