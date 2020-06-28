@@ -43,17 +43,6 @@ void cache_init(void)
 
 uint32_t cache_read(uint32_t addr)
 {
-  // Converting time into milli_seconds
-  int milli_seconds = 1000 * 1;
-
-  // Storing start time
-  clock_t start_time = clock();
-
-  // looping till required time is not achieved
-  while (clock() < start_time + milli_seconds)
-  {
-  };
-
   printf("cache_read address: %d\n", addr);
   // TODO: Assignment #3
   uint32_t value = 0;
@@ -123,18 +112,7 @@ uint32_t cache_read(uint32_t addr)
 }
 
 void cache_write(uint32_t addr, uint32_t value)
-{ 
-  // Converting time into milli_seconds
-  int milli_seconds = 1000 * 1;
-
-  // Storing start time
-  clock_t start_time = clock();
-
-  // looping till required time is not achieved
-  while (clock() < start_time + milli_seconds)
-  {
-  };
-
+{
   printf("cache_write addr: %d\n", addr);
   // TODO: Assignment #3
   uint32_t tagM = (addr & 0xFFFFFFC0) >> 6;
