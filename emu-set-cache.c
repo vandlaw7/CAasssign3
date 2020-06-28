@@ -15,6 +15,7 @@
 #define INDEX_BIT_WIDTH 4
 #define TAG_BIT_WIDTH (ADDR_BIT_WIDTH - G_BIT_WIDTH - INDEX_BIT_WIDTH)
 #define ASSO_NUM 4
+
 struct cache_block
 {
   uint32_t tag : TAG_BIT_WIDTH;
@@ -50,7 +51,7 @@ uint32_t cache_read(uint32_t addr)
   struct cache_block cb_arr[ASSO_NUM];
   for (int i = 0; i < ASSO_NUM; i++)
   {
-    cb_arr[i] = cache[4 * idxM + i];
+    cb_arr[i] = cache[ASSO_NUM * idxM + i];
   }
 
   uint8_t counter_arr[ASSO_NUM];
@@ -70,7 +71,9 @@ uint32_t cache_read(uint32_t addr)
     }
     else
     {
-      
+      if (!now_cb.counter){
+        cache[ASSO_NUM * idxM + i].counter -= 1;
+      }
     }
   }
 
@@ -84,8 +87,8 @@ uint32_t cache_read(uint32_t addr)
   uint8_t *p = ram + addr;
   value = p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
 
-  //cache-write 함수를 쓰면 불필요한 write-through를 하게 하므로 cache-write 대신 직접 처리함.
-  //가장 작은 counter를 가진 cache_block을 찾아서 data를 덮어쓴다.
+  
+  //가장 작은 counter를 가진 cache_block을 찾아내서 data를 덮어쓴다.
   uint8_t counter_min_idx = 0;
   for (int i = 1; i < ASSO_NUM; i++)
   {
@@ -95,14 +98,48 @@ uint32_t cache_read(uint32_t addr)
     }
   }
 
-  cb_arr[counter_min_idx].tag = tagM;
-  cb_arr[counter_min_idx].valid = 1;
-  cb_arr[counter_min_idx].data = value;
-  cb_arr[counter_min_idx].counter = 3;
+  //cache-write 함수를 쓰면 불필요한 write-through를 하게 하므로 cache-write 대신 직접 처리함.
+  cache[ASSO_NUM * idxM + counter_min_idx].tag = tagM;
+  cache[ASSO_NUM * idxM + counter_min_idx].valid = 1;
+  cache[ASSO_NUM * idxM + counter_min_idx].data = value;
+  cache[ASSO_NUM * idxM + counter_min_idx].counter = 3;
+
   return value;
 }
 
 void cache_write(uint32_t addr, uint32_t value)
 {
   // TODO: Assignment #3
+  uint32_t tagM = (addr & 0xFFFFFFC0) >> 6;
+  uint32_t idxM = (addr & 0x0000003C) >> 2;
+
+  struct cache_block cb_arr[ASSO_NUM];
+  for (int i = 0; i < ASSO_NUM; i++)
+  {
+    cb_arr[i] = cache[ASSO_NUM * idxM + i];
+  }
+
+  //가장 작은 counter를 가진 cache_block을 찾아내서 data를 덮어쓴다.
+  uint8_t counter_arr[ASSO_NUM];
+  uint8_t counter_min_idx = 0;
+  for (int i = 1; i < ASSO_NUM; i++)
+  {
+    if (cb_arr[i].counter < cb_arr[counter_min_idx].counter)
+    {
+      counter_min_idx = i;
+    }
+  }
+
+  //write-allocate
+  cache[ASSO_NUM * idxM + counter_min_idx].tag = tagM;
+  cache[ASSO_NUM * idxM + counter_min_idx].valid = 1;
+  cache[ASSO_NUM * idxM + counter_min_idx].data = value;
+  cache[ASSO_NUM * idxM + counter_min_idx].counter = 3;
+
+  //write-through
+  uint8_t *p = ram + addr;
+  p[0] = value & 0xff;
+  p[1] = (value >> 8) & 0xff;
+  p[2] = (value >> 16) & 0xff;
+  p[3] = (value >> 24) & 0xff;
 }
