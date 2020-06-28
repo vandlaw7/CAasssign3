@@ -4,6 +4,7 @@
 #include <assert.h>
 #include "emu-rv32i.h"
 #include "emu-cache.h"
+#include <time.h>
 
 // Address in 4-Way Set-associative Cache
 //
@@ -42,6 +43,18 @@ void cache_init(void)
 
 uint32_t cache_read(uint32_t addr)
 {
+  // Converting time into milli_seconds
+  int milli_seconds = 1000 * 1;
+
+  // Storing start time
+  clock_t start_time = clock();
+
+  // looping till required time is not achieved
+  while (clock() < start_time + milli_seconds)
+  {
+  };
+
+  printf("cache_read address: %d\n", addr);
   // TODO: Assignment #3
   uint32_t value = 0;
 
@@ -73,6 +86,7 @@ uint32_t cache_read(uint32_t addr)
         }
       }
 
+      printf("cache_read hit value: %d\n", value);
       return value;
     }
   }
@@ -103,11 +117,25 @@ uint32_t cache_read(uint32_t addr)
   cache[ASSO_NUM * idxM + rewrite_index].data = value;
   cache[ASSO_NUM * idxM + rewrite_index].counter = 3;
 
+  printf("cache_read miss value: %d\n", value);
+
   return value;
 }
 
 void cache_write(uint32_t addr, uint32_t value)
-{
+{ 
+  // Converting time into milli_seconds
+  int milli_seconds = 1000 * 1;
+
+  // Storing start time
+  clock_t start_time = clock();
+
+  // looping till required time is not achieved
+  while (clock() < start_time + milli_seconds)
+  {
+  };
+
+  printf("cache_write addr: %d\n", addr);
   // TODO: Assignment #3
   uint32_t tagM = (addr & 0xFFFFFFC0) >> 6;
   uint32_t idxM = (addr & 0x0000003C) >> 2;
@@ -116,6 +144,11 @@ void cache_write(uint32_t addr, uint32_t value)
   for (uint8_t i = 0; i < ASSO_NUM; i++)
   {
     cb_arr[i] = cache[ASSO_NUM * idxM + i];
+    if ((cb_arr[i].tag) == tagM && cb_arr[i].data == value)
+    {
+      printf("already same is writed\n");
+      return;
+    }
   }
 
   //가장 작은 counter를 가진 cache_block을 찾아내서 data를 덮어쓴다.
@@ -145,4 +178,7 @@ void cache_write(uint32_t addr, uint32_t value)
   p[1] = (value >> 8) & 0xff;
   p[2] = (value >> 16) & 0xff;
   p[3] = (value >> 24) & 0xff;
+
+  printf("cache_write value: %d\n", value);
+  return;
 }
