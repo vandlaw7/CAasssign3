@@ -49,37 +49,32 @@ uint32_t cache_read(uint32_t addr)
   uint32_t idxM = (addr & 0x0000003C) >> 2;
 
   struct cache_block cb_arr[ASSO_NUM];
-  for (int i = 0; i < ASSO_NUM; i++)
+  for (uint8_t i = 0; i < ASSO_NUM; i++)
   {
     cb_arr[i] = cache[ASSO_NUM * idxM + i];
   }
 
-  uint8_t counter_arr[ASSO_NUM];
-
-  uint8_t cache_hit = 0;
-  for (int i = 0; i < ASSO_NUM; i++)
+  for (uint8_t i = 0; i < ASSO_NUM; i++)
   {
     struct cache_block now_cb;
     now_cb = cb_arr[i];
-    counter_arr[i] = now_cb.counter;
 
     if (now_cb.valid && now_cb.tag == tagM)
     {
       num_cache_hit += 1;
-      cache_hit = 1;
       value = now_cb.data;
-    }
-    else
-    {
-      if (!now_cb.counter){
-        cache[ASSO_NUM * idxM + i].counter -= 1;
-      }
-    }
-  }
+      cache[ASSO_NUM * idxM + i].counter = 3;
 
-  if (cache_hit)
-  {
-    return value;
+      for (uint8_t j = 0; j < ASSO_NUM; j++)
+      {
+        if (j != i && now_cb.counter)
+        {
+          cache[ASSO_NUM * idxM + j].counter -= 1;
+        }
+      }
+
+      return value;
+    }
   }
 
   //여기까지 왔다는 것은 miss가 났다는 뜻이다.
@@ -87,22 +82,26 @@ uint32_t cache_read(uint32_t addr)
   uint8_t *p = ram + addr;
   value = p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
 
-  
   //가장 작은 counter를 가진 cache_block을 찾아내서 data를 덮어쓴다.
-  uint8_t counter_min_idx = 0;
-  for (int i = 1; i < ASSO_NUM; i++)
+  uint8_t rewrite_index = 0;
+  for (uint8_t i = 0; i < ASSO_NUM; i++)
   {
-    if (cb_arr[i].counter < cb_arr[counter_min_idx].counter)
+    if (!cb_arr[i].valid)
     {
-      counter_min_idx = i;
+      rewrite_index = i;
+      break;
+    }
+    if (cb_arr[i].counter < cb_arr[rewrite_index].counter)
+    {
+      rewrite_index = i;
     }
   }
 
   //cache-write 함수를 쓰면 불필요한 write-through를 하게 하므로 cache-write 대신 직접 처리함.
-  cache[ASSO_NUM * idxM + counter_min_idx].tag = tagM;
-  cache[ASSO_NUM * idxM + counter_min_idx].valid = 1;
-  cache[ASSO_NUM * idxM + counter_min_idx].data = value;
-  cache[ASSO_NUM * idxM + counter_min_idx].counter = 3;
+  cache[ASSO_NUM * idxM + rewrite_index].tag = tagM;
+  cache[ASSO_NUM * idxM + rewrite_index].valid = 1;
+  cache[ASSO_NUM * idxM + rewrite_index].data = value;
+  cache[ASSO_NUM * idxM + rewrite_index].counter = 3;
 
   return value;
 }
@@ -114,27 +113,31 @@ void cache_write(uint32_t addr, uint32_t value)
   uint32_t idxM = (addr & 0x0000003C) >> 2;
 
   struct cache_block cb_arr[ASSO_NUM];
-  for (int i = 0; i < ASSO_NUM; i++)
+  for (uint8_t i = 0; i < ASSO_NUM; i++)
   {
     cb_arr[i] = cache[ASSO_NUM * idxM + i];
   }
 
   //가장 작은 counter를 가진 cache_block을 찾아내서 data를 덮어쓴다.
-  uint8_t counter_arr[ASSO_NUM];
-  uint8_t counter_min_idx = 0;
-  for (int i = 1; i < ASSO_NUM; i++)
+  uint8_t rewrite_index = 0;
+  for (uint8_t i = 0; i < ASSO_NUM; i++)
   {
-    if (cb_arr[i].counter < cb_arr[counter_min_idx].counter)
+    if (!cb_arr[i].valid)
     {
-      counter_min_idx = i;
+      rewrite_index = i;
+      break;
+    }
+    if (cb_arr[i].counter < cb_arr[rewrite_index].counter)
+    {
+      rewrite_index = i;
     }
   }
 
   //write-allocate
-  cache[ASSO_NUM * idxM + counter_min_idx].tag = tagM;
-  cache[ASSO_NUM * idxM + counter_min_idx].valid = 1;
-  cache[ASSO_NUM * idxM + counter_min_idx].data = value;
-  cache[ASSO_NUM * idxM + counter_min_idx].counter = 3;
+  cache[ASSO_NUM * idxM + rewrite_index].tag = tagM;
+  cache[ASSO_NUM * idxM + rewrite_index].valid = 1;
+  cache[ASSO_NUM * idxM + rewrite_index].data = value;
+  cache[ASSO_NUM * idxM + rewrite_index].counter = 3;
 
   //write-through
   uint8_t *p = ram + addr;
