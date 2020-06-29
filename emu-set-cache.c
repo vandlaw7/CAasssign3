@@ -43,7 +43,7 @@ void cache_init(void)
 
 uint32_t cache_read(uint32_t addr)
 {
-  printf("cache_read address: %d\n", addr);
+  printf("cache_read address: %x\n", addr);
   // TODO: Assignment #3
   uint32_t value = 0;
 
@@ -75,7 +75,7 @@ uint32_t cache_read(uint32_t addr)
         }
       }
 
-      printf("cache_read hit value: %d\n", value);
+      printf("cache_read hit value: %x\n", value);
       return value;
     }
   }
@@ -106,14 +106,14 @@ uint32_t cache_read(uint32_t addr)
   cache[ASSO_NUM * idxM + rewrite_index].data = value;
   cache[ASSO_NUM * idxM + rewrite_index].counter = 3;
 
-  printf("cache_read miss value: %d\n", value);
+  printf("cache_read miss value: %x\n", value);
 
   return value;
 }
 
 void cache_write(uint32_t addr, uint32_t value)
 {
-  printf("cache_write addr: %d\n", addr);
+  printf("cache_write addr: %x\n", addr);
   // TODO: Assignment #3
   uint32_t tagM = (addr & 0xFFFFFFC0) >> 6;
   uint32_t idxM = (addr & 0x0000003C) >> 2;
@@ -124,7 +124,7 @@ void cache_write(uint32_t addr, uint32_t value)
     cb_arr[i] = cache[ASSO_NUM * idxM + i];
     if ((cb_arr[i].tag) == tagM && cb_arr[i].data == value)
     {
-      printf("already same is writed\n");
+      printf("already same is writed. value: %x\n", value);
       return;
     }
   }
@@ -157,6 +157,6 @@ void cache_write(uint32_t addr, uint32_t value)
   p[2] = (value >> 16) & 0xff;
   p[3] = (value >> 24) & 0xff;
 
-  printf("cache_write value: %d\n", value);
+  printf("cache_write value: %x\n", value);
   return;
 }

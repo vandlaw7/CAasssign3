@@ -759,6 +759,8 @@ int target_read_u8(uint8_t *pval, uint32_t addr)
 #else
         uint8_t *p = ram + addr;
         *pval = p[0];
+        printf("read_u8 addr: %x\n", addr);
+        printf("read_u8 val: %x\n", *pval);
 #endif
         debug_out("[%lx] read_u8: addr:%x val:%x\n", insn_counter, addr, *pval);
         debug_out("-----------------------------------\n");
@@ -838,6 +840,8 @@ int target_read_u16(uint16_t *pval, uint32_t addr)
 #else
         uint8_t *p = ram + addr;
         *pval = p[0] | (p[1] << 8);
+        printf("read_u16 addr: %x\n", addr);
+        printf("read_u16 val: %x\n", *pval);
 #endif
         debug_out("[%lx] read_u16: addr:%x val:%x\n", insn_counter, addr, (*pval&0xffff));
         debug_out("-----------------------------------\n");
@@ -884,6 +888,8 @@ int target_read_u32(uint32_t *pval, uint32_t addr)
 #else
             uint8_t *p = ram + addr;
             *pval = p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
+            printf("read_u16 addr: %x\n", addr);
+            printf("read_u16 val: %x\n", *pval);
 #endif
             debug_out("[%lx] read_u32: addr:%x val:%x\n", insn_counter, addr, *pval);
             debug_out("-----------------------------------\n");
@@ -941,6 +947,8 @@ int target_write_u8(uint32_t addr, uint8_t val)
 #else
             uint8_t *p = ram + addr;
             p[0] = val & 0xff;
+            printf("write_u8 addr: %x\n", addr);
+            printf("write_u8 val: %x\n", p[0]);
 #endif
             debug_out("-----------------------------------\n");
         }
@@ -992,6 +1000,8 @@ int target_write_u16(uint32_t addr, uint16_t val)
         uint8_t *p = ram + addr;
         p[0] = val & 0xff;
         p[1] = (val >> 8) & 0xff;
+        printf("write_u16 addr: %x\n", addr);
+        printf("write_u16 val: p0: %x, p0: %x\n", p[0], p[1]);
 #endif
         debug_out("-----------------------------------\n");
     }
