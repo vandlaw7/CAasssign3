@@ -6,7 +6,7 @@
  */
 
 #define XLEN 32
-
+// #define USE_CACHE 1
 #include <fcntl.h>
 #include <gelf.h>
 #include <libelf.h>
@@ -799,42 +799,22 @@ int target_read_u16(uint16_t *pval, uint32_t addr)
 
         switch (ofs)
         {
-        case 0x3:
-            targetval1 = (data >> 24) & 0xff;
-            break;
         case 0x2:
             targetval1 = (data >> 16) & 0xff;
-            break;
-        case 0x1:
-            targetval1 = (data >> 8) & 0xff;
+            targetval2 = (data >> 24) & 0xff;
             break;
         case 0x0:
             targetval1 = data & 0xff;
-            break;
-        default:
-            break;
-        }
-
-        switch (ofs + 1)
-        {
-        case 0x3:
-            targetval2 = (data >> 24) & 0xff;
-            break;
-        case 0x2:
-            targetval2 = (data >> 16) & 0xff;
-            break;
-        case 0x1:
             targetval2 = (data >> 8) & 0xff;
-            break;
-        case 0x0:
-            targetval2 = data & 0xff;
+            
             break;
         default:
             break;
         }
-
 
         *pval = targetval1 | (targetval2 << 8);
+
+        
 #else
         uint8_t *p = ram + addr;
         *pval = p[0] | (p[1] << 8);
@@ -977,16 +957,10 @@ int target_write_u16(uint32_t addr, uint16_t val)
         uint32_t new_data = 0;
         switch (ofs)
         {
-        case 0x03:
+        case 0x2:
             new_data = (old_data & 0x0000ffff) | (val << 16);
             break;
-        case 0x02:
-            new_data = (old_data & 0x0000ffff) | (val << 16);
-            break;
-        case 0x01:
-            new_data = (old_data & 0xffff0000) | val;
-            break;
-        case 0x00:
+        case 0x0:
             new_data = (old_data & 0xffff0000) | val;
             break;
         default:
