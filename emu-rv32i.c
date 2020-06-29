@@ -977,8 +977,14 @@ int target_write_u16(uint32_t addr, uint16_t val)
         uint32_t new_data = 0;
         switch (ofs)
         {
+        case 0x03:
+            new_data = (old_data & 0x0000ffff) | (val << 16);
+            break;
         case 0x02:
             new_data = (old_data & 0x0000ffff) | (val << 16);
+            break;
+        case 0x01:
+            new_data = (old_data & 0xffff0000) | val;
             break;
         case 0x00:
             new_data = (old_data & 0xffff0000) | val;
